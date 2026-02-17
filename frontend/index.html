@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Road Trip Audio Companion</title>
+
+<style>
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(135deg, #1e3c72, #2a5298);
+    margin: 0;
+    padding: 40px;
+    color: #fff;
+}
+
+.container {
+    max-width: 700px;
+    margin: auto;
+    background: #ffffff;
+    color: #333;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+
+button {
+    width: 100%;
+    padding: 12px;
+    background: #1e3c72;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    background: #2a5298;
+    transform: scale(1.02);
+}
+
+.episode {
+    background: #f4f6fb;
+    padding: 15px;
+    border-radius: 10px;
+    margin-top: 15px;
+    border-left: 5px solid #1e3c72;
+}
+
+.loading {
+    text-align: center;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.unused {
+    margin-top: 20px;
+    font-weight: bold;
+    text-align: center;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>🚗 AI Road Trip Audio Companion</h2>
+
+<label>Trip Duration (minutes)</label>
+<input id="duration" type="number" value="120">
+
+<label>Mood</label>
+<input id="mood" type="text" value="relaxed">
+
+<button onclick="getRecommendations()">Build Playlist</button>
+
+<div id="loading" class="loading"></div>
+<div id="results"></div>
+
+</div>
+
+<script>
+async function getRecommendations() {
+    const duration = parseInt(document.getElementById("duration").value);
+    const mood = document.getElementById("mood").value;
+
+    const loading = document.getElementById("loading");
+    const results = document.getElementById("results");
+
+    loading.innerHTML = "⏳ Generating AI playlist...";
+    results.innerHTML = "";
+
+    const response = await fetch("http://127.0.0.1:8000/recommend", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({duration, mood})
+    });
+
+    const data = await response.json();
+
+    loading.innerHTML = "";
+
+    data.playlist.forEach(ep => {
+        const div = document.createElement("div");
+        div.className = "episode";
+        div.innerHTML = `
+            <b>${ep.title}</b><br>
+            ${ep.description}<br>
+            <i>Duration: ${ep.duration} min</i>
+        `;
+        results.appendChild(div);
+    });
+
+    const unused = document.createElement("div");
+    unused.className = "unused";
+    unused.innerHTML = `Unused time: ${data.unused_minutes} minutes`;
+    results.appendChild(unused);
+}
+</script>
+
+</body>
+</html>
